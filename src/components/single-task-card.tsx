@@ -1,11 +1,13 @@
 import { format } from "date-fns";
-import { Pencil, Trash } from "lucide-react";
+import { Trash } from "lucide-react";
+import EditTask from "./edit-task";
 
 interface ISingleTaskCard {
-  id: String;
+  id: string;
   title: string;
   updatedAt: Date;
   description: string;
+  isCompleted: boolean;
 }
 
 const SingleTaskCard: React.FC<ISingleTaskCard> = ({
@@ -13,11 +15,8 @@ const SingleTaskCard: React.FC<ISingleTaskCard> = ({
   title,
   updatedAt,
   description,
+  isCompleted,
 }) => {
-  const markCompleteHandler = () => {
-    console.log(id);
-  };
-
   return (
     <div className="shadow-md bg-white p-6 flex flex-col rounded-md">
       <h3 className="text-lg font-medium">{title}</h3>
@@ -28,18 +27,10 @@ const SingleTaskCard: React.FC<ISingleTaskCard> = ({
         {description}
       </p>
       <div className="w-full flex items-center justify-between gap-4">
-        <button
-          className="w-full mt-4 flex items-center gap-2 font-medium text-sm bg-red-500 text-white py-3 px-6 rounded shadow-sm  transition-all duration-300 ease-in-out hover:bg-red-500/90  text-center justify-center"
-          onClick={markCompleteHandler}
-        >
+        <button className="w-full mt-4 flex items-center gap-2 font-medium text-sm bg-red-500 text-white py-3 px-6 rounded shadow-sm  transition-all duration-300 ease-in-out hover:bg-red-500/90  text-center justify-center">
           <Trash className="w-4 h-4" /> Delete
         </button>
-        <button
-          className="w-full mt-4 flex items-center gap-2 font-medium text-sm bg-gray-100 py-3 px-6 rounded shadow-sm text-gray-950 transition-all duration-300 ease-in-out hover:bg-gray-100/90  text-center justify-center"
-          onClick={markCompleteHandler}
-        >
-          <Pencil className="w-4 h-4" /> Edit
-        </button>
+        <EditTask task={{ id, title, description, isCompleted }} />
       </div>
     </div>
   );
