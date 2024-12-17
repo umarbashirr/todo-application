@@ -1,7 +1,3 @@
-import * as z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -11,6 +7,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { axiosInstance } from "@/lib/axios";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+import { ButtonLoading } from "./loading-button";
 import { Textarea } from "./ui/textarea";
 
 interface ITodoForm {
@@ -40,8 +42,27 @@ const TodoForm: React.FC<ITodoForm> = ({ isEditing = false, initialData }) => {
       description: isEditing && initialData ? initialData.description : "",
     },
   });
-  const onSubmitHandler = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmitHandler = async (values: z.infer<typeof formSchema>) => {
+    try {
+      let response;
+
+      if (isEditing) {
+        response = await axiosInstance.put("/tasks/" + initialData?.id, values);
+      } else {
+        response = await axiosInstance.post("/tasks", values);
+      }
+
+      const data = response.data;
+
+      if (response.status > 299) {
+        toast.error(data?.message);
+        return;
+      }
+
+      toast.success(data?.message);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message);
+    }
   };
   return (
     <Form {...form}>
@@ -80,9 +101,14 @@ const TodoForm: React.FC<ITodoForm> = ({ isEditing = false, initialData }) => {
             </FormItem>
           )}
         />
-        <Button type="submit" className="mt-2">
+        <ButtonLoading
+          isLoading={form.formState.isSubmitting}
+          loadingLabel="Please wait..."
+          type="submit"
+          className="mt-2"
+        >
           {isEditing ? "Update now" : "Create now"}
-        </Button>
+        </ButtonLoading>
       </form>
     </Form>
   );
