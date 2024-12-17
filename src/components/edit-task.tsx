@@ -2,6 +2,7 @@ import { Pencil } from "lucide-react";
 import { useState } from "react";
 import Model from "./model";
 import TodoForm from "./todo-form";
+import { Button } from "./ui/button";
 
 interface IEditTask {
   task: {
@@ -17,17 +18,18 @@ const EditTask: React.FC<IEditTask> = ({ task }) => {
 
   return (
     <>
-      <button
-        className="w-full mt-4 flex items-center gap-2 font-medium text-sm bg-gray-100 py-3 px-6 rounded shadow-sm text-gray-950 transition-all duration-300 ease-in-out hover:bg-gray-100/90  text-center justify-center"
+      <Button
+        className="flex items-center justify-center w-full"
         onClick={() => setOpen(true)}
       >
         <Pencil className="w-4 h-4" /> Edit
-      </button>
+      </Button>
       {open && (
         <Model
           title="Edit Task"
           description="Fill out the below form in order to update your  task."
           onClose={() => setOpen(false)}
+          isOpen={open}
         >
           <TodoForm isEditing={true} initialData={task} />
         </Model>

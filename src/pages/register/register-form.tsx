@@ -1,71 +1,119 @@
-import { useState } from "react";
-import Button from "../../components/button";
-import { ArrowRight } from "lucide-react";
+import { ButtonLoading } from "@/components/loading-button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import * as z from "zod";
+import { axiosInstance } from "../../lib/axios";
+
+const formSchema = z.object({
+  name: z.string().min(2, { message: "Name should be minimum 02 characters!" }),
+  email: z.string().email({ message: "Enter valid email!" }),
+  password: z
+    .string()
+    .min(6, { message: "Password should be minimum 06 characters!" }),
+});
 
 const RegisterForm = () => {
-  const [values, setValues] = useState<{
-    name: string;
-    email: string;
-    password: string;
-  }>({
-    name: "",
-    email: "",
-    password: "",
+  const navigate = useNavigate();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
   });
 
-  const onSubmitHandler = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    console.log(values);
+  const onSubmitHandler = async (values: z.infer<typeof formSchema>) => {
+    try {
+      const response = await axiosInstance.post("/auth/register", values);
+
+      const data = response.data;
+
+      if (response.status > 299) {
+        toast.error(data?.message);
+        return;
+      }
+
+      toast.success(data?.message);
+
+      setTimeout(() => {
+        navigate("/login", {
+          replace: true,
+        });
+      }, 1);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
-    <form onSubmit={onSubmitHandler} className="space-y-4">
-      <div className="w-full flex flex-col gap-2">
-        <label htmlFor="name" className="font-medium text-sm">
-          Name
-        </label>
-        <input
-          id="name"
-          type="text"
-          placeholder="Enter your fullname"
-          className="focus:outline-gray-900 border rounded p-2 text-sm"
-          required
-          value={values?.name}
-          onChange={(e) => setValues({ ...values, name: e.target.value })}
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmitHandler)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Full Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="w-full flex flex-col gap-2">
-        <label htmlFor="email" className="font-medium text-sm">
-          Email
-        </label>
-        <input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          className="focus:outline-gray-900 border rounded p-2 text-sm"
-          required
-          value={values?.email}
-          onChange={(e) => setValues({ ...values, email: e.target.value })}
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter your email" type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="w-full flex flex-col gap-2">
-        <label htmlFor="password" className="font-medium text-sm">
-          Password
-        </label>
-        <input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          className="focus:outline-gray-900 border rounded p-2 text-sm"
-          required
-          value={values?.password}
-          onChange={(e) => setValues({ ...values, password: e.target.value })}
+        <FormField
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="Enter your password"
+                  type="password"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <Button className="w-full" type="submit">
-        Register now <ArrowRight className="w-4 h-4" />
-      </Button>
-    </form>
+        <ButtonLoading
+          className="w-full"
+          isLoading={form.formState.isSubmitting}
+          loadingLabel="Please wait..."
+          type="submit"
+        >
+          Register Now
+        </ButtonLoading>
+      </form>
+    </Form>
   );
 };
 

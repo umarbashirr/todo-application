@@ -1,5 +1,17 @@
-import { useState } from "react";
-import Button from "./button";
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "./ui/textarea";
 
 interface ITodoForm {
   initialData?: {
@@ -11,51 +23,68 @@ interface ITodoForm {
   isEditing?: boolean;
 }
 
+const formSchema = z.object({
+  title: z
+    .string()
+    .min(2, { message: "Title should be minimum 02 characters!" }),
+  description: z
+    .string()
+    .min(2, { message: "Description should be minimum 02 characters!" }),
+});
+
 const TodoForm: React.FC<ITodoForm> = ({ isEditing = false, initialData }) => {
-  const [values, setValues] = useState({
-    title: initialData ? initialData.title : "",
-    description: initialData ? initialData.description : "",
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: isEditing && initialData ? initialData.title : "",
+      description: isEditing && initialData ? initialData.description : "",
+    },
   });
-  const onSubmitHandler = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSubmitHandler = (values: z.infer<typeof formSchema>) => {
     console.log(values);
   };
   return (
-    <form className="space-y-4 w-full" onSubmit={onSubmitHandler}>
-      <div className="w-full flex flex-col gap-2">
-        <label htmlFor="title" className="font-medium text-sm">
-          Title
-        </label>
-        <input
-          id="title"
-          type="text"
-          placeholder="Enter your title"
-          className="focus:outline-gray-900 border rounded p-2 text-sm"
-          required
-          value={values?.title}
-          onChange={(e) => setValues({ ...values, title: e.target.value })}
+    <Form {...form}>
+      <form
+        className="space-y-4 w-full"
+        onSubmit={form.handleSubmit(onSubmitHandler)}
+      >
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
-      <div className="w-full flex flex-col gap-2">
-        <label htmlFor="description" className="font-medium text-sm">
-          Description
-        </label>
-        <textarea
-          id="description"
-          placeholder="Enter your description"
-          className="focus:outline-gray-900 border rounded p-2 text-sm resize-none"
-          required
-          rows={5}
-          value={values?.description}
-          onChange={(e) =>
-            setValues({ ...values, description: e.target.value })
-          }
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder="Enter your description"
+                  rows={8}
+                  className="resize-none"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
         <Button type="submit" className="mt-2">
           {isEditing ? "Update now" : "Create now"}
         </Button>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 };
 

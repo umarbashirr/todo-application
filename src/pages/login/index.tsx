@@ -1,7 +1,34 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import LoginForm from "./login-form";
+import { useEffect, useState } from "react";
 
 const LoginPage = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [token, setToken] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const getToken = () => {
+    // Retrieve the token from localStorage
+    const data = localStorage.getItem("app-token");
+
+    if (!data) {
+      setIsLoading(false);
+      return;
+    }
+
+    const parsed = JSON.parse(data);
+
+    if (parsed && Object.keys(parsed).length > 0) {
+      navigate("/dashboard", { replace: true });
+    } else {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getToken();
+  }, []);
+
   return (
     <div className="w-full h-full min-h-screen p-6 flex items-center justify-center">
       <div className="w-full max-w-[400px] border p-6 rounded-xl shadow-sm">
